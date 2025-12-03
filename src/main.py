@@ -8,6 +8,7 @@ from resources.v1.send import *
 from resources.v1.sentitems import *
 from resources.v1.inbox import *
 from resources.v1.outbox import *
+from resources.actuator import *
 from resources.logs import *
 from resources.errors import *
 

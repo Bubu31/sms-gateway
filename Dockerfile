@@ -5,7 +5,8 @@ RUN apk update \
 		gammu=1.42.0-r1 \
 		gammu-libs=1.42.0-r1 \
 		gammu-smsd=1.42.0-r1 \
-		mariadb-dev
+		mariadb-dev \
+		curl
 
 RUN python -m pip install -U pip
 

@@ -69,6 +69,12 @@ services:
       - MYSQL_PASSWORD=Bpj7hXNCextgnzSWckFybV
       - MYSQL_DATABASE=smsd
       - GAMMU_DEVICE=/dev/phone
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/healthz || exit 1"]
+      start_period: 10s
+      interval: 30s
+      timeout: 10s
+      retries: 3
 ```
 
 # Run containers
