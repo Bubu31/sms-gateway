@@ -97,6 +97,39 @@ class SendItemsID(Resource):
 
 @ns.route('/v1/sentitems/all')
 class SendItemsALL(Resource):
+
+    @ns.doc(description='Get all SMS located in the send items without pagination')
+    @api.doc(params={'before': {'description': 'Filter SMS sent before a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'after': {'description': 'Filter SMS sent after a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'sender': {'description': 'Filter SMS by sender ID', 'in': 'query', 'type': 'string'}})
+    @required_bearerAuth(environment_config["require_bearer"])
+    @required_basicAuth(environment_config["require_basic"])
+    @api.response(200, 'Success')
+    def get(self):
+        '''   Get all SMS located in the send items without pagination'''
+        before = request.args.get('before')
+        after = request.args.get('after')
+        sender = request.args.get('sender')
+
+        with get_session() as session:
+            query = session.query(sentitems)
+
+            if(before):
+                query = query.filter(sentitems.SendingDateTime < before)
+            if(after):
+                query = query.filter(sentitems.SendingDateTime > after)
+            if(sender):
+                query = query.filter(sentitems.SenderID == sender)
+
+            records = query.all()
+            results = []
+            for record in records:
+                results.append(record.as_json())
+
+        return {
+            'results': results
+        }, 200
+
     @ns.doc(description='Delete all SMS located in the send items')
     @ns.response(204, 'Success')
     @required_bearerAuth(environment_config["require_bearer"])

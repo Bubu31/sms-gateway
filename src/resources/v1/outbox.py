@@ -40,9 +40,9 @@ class Outbox(Resource):
             query = session.query(outbox)
             query = query.filter()
 
-            if(destination):
+            if(before):
                 query = query.filter(outbox.SendingDateTime < before)
-            if(destination):
+            if(after):
                 query = query.filter(outbox.SendingDateTime > after)
             if(destination):
                 query = query.filter(outbox.DestinationNumber == destination)
@@ -97,6 +97,39 @@ class OutboxID(Resource):
 
 @ns.route('/v1/outbox/all')
 class OutboxALL(Resource):
+
+    @ns.doc(description='Get all SMS located in the outbox without pagination')
+    @api.doc(params={'before': {'description': 'Filter SMS sent before a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'after': {'description': 'Filter SMS sent after a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'destination': {'description': 'Filter SMS by destination number', 'in': 'query', 'type': 'string'}})
+    @required_bearerAuth(environment_config["require_bearer"])
+    @required_basicAuth(environment_config["require_basic"])
+    @api.response(200, 'Success')
+    def get(self):
+        '''   Get all SMS located in the outbox without pagination'''
+        before = request.args.get('before')
+        after = request.args.get('after')
+        destination = request.args.get('destination')
+
+        with get_session() as session:
+            query = session.query(outbox)
+
+            if(before):
+                query = query.filter(outbox.SendingDateTime < before)
+            if(after):
+                query = query.filter(outbox.SendingDateTime > after)
+            if(destination):
+                query = query.filter(outbox.DestinationNumber == destination)
+
+            records = query.all()
+            results = []
+            for record in records:
+                results.append(record.as_json())
+
+        return {
+            'results': results
+        }, 200
+
     @ns.doc(description='Delete all SMS located in the outbox')
     @ns.response(204, 'Success')
     @required_bearerAuth(environment_config["require_bearer"])

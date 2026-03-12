@@ -97,6 +97,39 @@ class InboxID(Resource):
 
 @ns.route('/v1/inbox/all')
 class InboxALL(Resource):
+
+    @ns.doc(description='Get all SMS located in the inbox without pagination')
+    @api.doc(params={'before': {'description': 'Filter SMS received before a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'after': {'description': 'Filter SMS received after a date', 'in': 'query', 'type': 'date'}})
+    @api.doc(params={'sender': {'description': 'Filter SMS by sender number', 'in': 'query', 'type': 'string'}})
+    @required_bearerAuth(environment_config["require_bearer"])
+    @required_basicAuth(environment_config["require_basic"])
+    @api.response(200, 'Success')
+    def get(self):
+        '''   Get all SMS located in the inbox without pagination'''
+        before = request.args.get('before')
+        after = request.args.get('after')
+        sender = request.args.get('sender')
+
+        with get_session() as session:
+            query = session.query(inbox)
+
+            if(before):
+                query = query.filter(inbox.ReceivingDateTime < before)
+            if(after):
+                query = query.filter(inbox.ReceivingDateTime > after)
+            if(sender):
+                query = query.filter(inbox.SenderNumber == sender)
+
+            records = query.all()
+            results = []
+            for record in records:
+                results.append(record.as_json())
+
+        return {
+            'results': results
+        }, 200
+
     @ns.doc(description='Delete all SMS located in the inbox')
     @ns.response(204, 'Success')
     @required_bearerAuth(environment_config["require_bearer"])
