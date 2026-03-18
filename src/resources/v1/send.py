@@ -16,6 +16,18 @@ ns = api.namespace('Send', description='Send operations', path='/')
 
 smsd = gammu.smsd.SMSD(gammu_smsd_config['conf'])
 
+GSM_7BIT_CHARS = set(
+    '@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞ !"#¤%&\'()*+,-./0123456789:;<=>?'
+    '¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà'
+    'ÆæßÉ'
+    '\f^{}\\[~]|€'
+)
+
+def requires_unicode(text):
+    if not text:
+        return False
+    return not all(c in GSM_7BIT_CHARS for c in text)
+
 @ns.route('/v1/send')
 class SendSMS(Resource):
     @ns.expect(sms_post, validate=True)
@@ -28,12 +40,13 @@ class SendSMS(Resource):
         json_data = request.json
         message = json_data["message"]
         numbers = json_data["recipients"]
+        use_unicode = requires_unicode(message)
         results = []
         for number in numbers:
             # Create SMS info structure
             smsinfo = {
                 'Class': -1,
-                'Unicode': True,
+                'Unicode': use_unicode,
                 'Entries':  [
                     {
                         'ID': 'ConcatenatedTextLong',
