@@ -126,9 +126,7 @@ class SendItemsALL(Resource):
             for record in records:
                 results.append(record.as_json())
 
-        return {
-            'results': results
-        }, 200
+        return results, 200
 
     @ns.doc(description='Delete all SMS located in the send items')
     @ns.response(204, 'Success')
